@@ -1,0 +1,2 @@
+apply plugin: "com.android.application"
+android { namespace "com.metin2.gmpanel"; compileSdk 35; defaultConfig { applicationId "com.metin2.gmpanel"; minSdk 21; targetSdk 34; versionCode 1; versionName "1.0" }; signingConfigs { debug { storeFile file("/tmp/mobile2.keystore"); storePassword System.getenv("KEYSTORE_PASS") ?: "mobile2lab"; keyAlias System.getenv("KEY_ALIAS") ?: "mobile2"; keyPassword System.getenv("KEY_PASS") ?: "mobile2lab" } }; buildTypes { debug { signingConfig signingConfigs.debug } } }
