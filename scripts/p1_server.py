@@ -21,20 +21,21 @@ main_cpp = "/tmp/m2dev-server-src/src/game/main.cpp"
 ms = open(main_cpp, "r", encoding="utf-8", errors="ignore").read()
 m = re.search(r"(?m)^[ \t]*(?:static[ \t]+)?void[ \t]+heartbeat[ \t]*\([^;{}]*\)[ \t\r\n]*\{", ms)
 assert m is not None, "main.cpp icinde heartbeat tanimi bulunamadi!"
-hdr = ["", "// M2_ADM_HEADERS", "#include <thread>", "#include <mutex>", "#include <queue>", "#include <chrono>", "#include <string>", "#include <memory>", "#include <utility>", "#include <type_traits>", "#include <cstring>", "#include <cstdio>", "#include <cstdlib>", "#include <cctype>", "#include <sys/socket.h>", "#include <netinet/in.h>", "#include <arpa/inet.h>", "#include <unistd.h>", ""]
+hdr = ["", "// M2_ADM_HEADERS", "#include <thread>", "#include <mutex>", "#include <queue>", "#include <chrono>", "#include <string>", "#include <memory>", "#include <utility>", "#include <type_traits>", "#include <cstring>", "#include <cstdio>", "#include <cstdlib>", "#include <sys/socket.h>", "#include <netinet/in.h>", "#include <arpa/inet.h>", "#include <unistd.h>", ""]
 b = [""]
 b.append('#include "config.h"')
 b.append('#include "db.h"')
 b.append('#include "char.h"')
 b.append('#include "char_manager.h"')
 b.append('#include "cmd.h"')
+b.extend(hdr)
 b.append("struct M2AdminReq { std::string nick, cmd, reply; bool done; M2AdminReq() : done(false) {} };")
 b.append("static std::mutex g_m2_adm_mtx;")
 b.append("static std::queue<std::shared_ptr<M2AdminReq>> g_m2_adm_q;")
 b.append("template <typename T> static typename std::enable_if<std::is_pointer<T>::value>::type m2_adm_release(T p) { delete p; }")
 b.append("template <typename T> static typename std::enable_if<!std::is_pointer<T>::value>::type m2_adm_release(const T&) {}")
 b.append('static void m2_adm_exec_sql(const char* query) { auto res = DBManager::instance().DirectQuery("%s", query); m2_adm_release(res); }')
-b.append("static bool m2_adm_is_owner(const char* s) { return s && std::tolower((unsigned char)s[0]) == 't' && std::tolower((unsigned char)s[1]) == 'e' && std::tolower((unsigned char)s[2]) == 's' && std::tolower((unsigned char)s[3]) == 't' && s[4] == 0; }")
+b.append("static bool m2_adm_is_owner(const char* s) { return s && (s[0]=='t'||s[0]=='T')&&(s[1]=='e'||s[1]=='E')&&(s[2]=='s'||s[2]=='S')&&(s[3]=='t'||s[3]=='T') && s[4] == 0; }")
 b.append("static bool m2_adm_db(char* out, size_t sz) {")
 b.append('const char* envs[] = { std::getenv("M2_DB_DIR"), std::getenv("SQLITE_DB_DIR") };')
 b.append('for (int i = 0; i < 2; ++i) { if (envs[i] && envs[i][0]) { std::snprintf(out, sz, "%s/common.sqlite3", envs[i]); if (::access(out, F_OK) == 0) return true; } }')
@@ -146,7 +147,5 @@ b.append('m2_adm_set_reply(req, std::string("OK: Uygulandi -> /") + exec_cmd);')
 b.append("}")
 b.append("}")
 ms = (ms[:m.start()] + "\n".join(b) + "\n" + ms[m.start():m.end()] + "\nm2_adm_tick();\n" + ms[m.end():]) if "m2_adm_tick" not in ms else ms
-sm = re.search(r'(?m)^[ \t]*#include[ \t]+"stdafx\.h"[ \t]*\r?\n', ms)
-ms = (ms[:sm.end()] + "\n".join(hdr) + ms[sm.end():]) if (sm and "M2_ADM_HEADERS" not in ms) else (("\n".join(hdr) + ms) if "M2_ADM_HEADERS" not in ms else ms)
 open(main_cpp, "w", encoding="utf-8").write(ms)
 print("OK: p1_server tamamlandi.")
