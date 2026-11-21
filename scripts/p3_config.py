@@ -3,9 +3,12 @@ import os, zipfile
 REPO_SLUG = os.environ.get("GITHUB_REPOSITORY", "zenfasulyesi55-afk/Metin2-Lab")
 sr = "client-src/r10dev.net OPENGL-ITJA/clientsource"
 fps = [os.path.join(r, fn) for r, _, fs in os.walk(sr) for fn in fs if fn.endswith((".cpp", ".c", ".h"))]
-[open(fp, "w", encoding="utf-8").write(t.replace("GL_LINEAR_MIPMAP_NEAREST", "GL_LINEAR_MIPMAP_LINEAR").replace("GL_NEAREST_MIPMAP_LINEAR", "GL_LINEAR_MIPMAP_LINEAR")) for fp in fps for t in [open(fp, "r", encoding="utf-8", errors="ignore").read()] if ("GL_LINEAR_MIPMAP_NEAREST" in t or "GL_NEAREST_MIPMAP_LINEAR" in t)]
-cfg = ["WIDTH\t1280", "HEIGHT\t720", "BPP\t32", "FREQUENCY\t60", "SOFTWARE_CURSOR\t0", "OBJECT_CULLING\t1", "VISIBILITY\t3", "MUSIC_VOLUME\t0.5", "VOICE_VOLUME\t5", "GAMMA\t3", "IS_SAVE_ID\t1", "SAVE_ID\ttest", "PRE_LOADING_DELAY_TIME\t20", "DECOMPRESSED_TEXTURE\t0", "TEXTURE_LEVEL\t0", "SHADOW_LEVEL\t2", "EFFECT_LEVEL\t0"]
-open("/tmp/m2stage/metin2.cfg", "w", encoding="utf-8").write("\n".join(cfg) + "\n")
+cfg = ["WIDTH\t1280", "HEIGHT\t720", "BPP\t32", "FREQUENCY\t60", "SOFTWARE_CURSOR\t0", "OBJECT_CULLING\t1", "VISIBILITY\t3", "MUSIC_VOLUME\t0.5", "VOICE_VOLUME\t5", "GAMMA\t3", "IS_SAVE_ID\t1", "SAVE_ID\ttest", "PRE_LOADING_DELAY_TIME\t20", "DECOMPRESSED_TEXTURE\t1", "TEXTURE_LEVEL\t0", "SHADOW_LEVEL\t0", "EFFECT_LEVEL\t0"]
+mcfg="/tmp/m2stage/metin2.cfg"
+base_cfg=open(mcfg,"r",encoding="utf-8",errors="ignore").read().splitlines() if os.path.exists(mcfg) else cfg
+kv={ps[0]:ps[1] for x in base_cfg for ps in [x.strip().split(None,1)] if len(ps)==2}
+kv.update({"DECOMPRESSED_TEXTURE":"1","SHADOW_LEVEL":"0","IS_SAVE_ID":"1","SAVE_ID":"test"})
+open(mcfg,"w",encoding="utf-8").write("\n".join(k+"\t"+v for k,v in kv.items())+"\n")
 prof_path = "client-src/r10dev.net OPENGL-ITJA/android/profiles/offline.properties"
 pr = []
 pr.append("m2.abi=arm64-v8a")
