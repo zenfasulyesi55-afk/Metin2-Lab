@@ -10,9 +10,7 @@ echo "sdk.dir=$SDK_ROOT" > "$CLIENT_ANDROID/local.properties"
 echo "sdk.dir=$SDK_ROOT" > "$GM_DIR/local.properties"
 if [ ! -x /tmp/gd/gradle-8.13/bin/gradle ]; then curl -sL https://services.gradle.org/distributions/gradle-8.13-bin.zip -o /tmp/g.zip && unzip -q -o /tmp/g.zip -d /tmp/gd && rm -f /tmp/g.zip; fi
 mkdir -p /tmp/m2bundle
-(cd "$CLIENT_ANDROID" && M2_SERVER_SRC=/tmp/m2dev-server-src /tmp/gd/gradle-8.13/bin/gradle assembleDebug --no-daemon -Pm2profile=offline -Pm2abi=arm64-v8a && cp app/build/outputs/apk/debug/app-debug.apk /tmp/m2bundle/metin2-live-base.apk)
-unzip -l /tmp/m2bundle/metin2-live-base.apk | grep -q "lib/arm64-v8a/libmetin2_mobile.so"
-unzip -l /tmp/m2bundle/metin2-live-base.apk | grep -q "lib/arm64-v8a/libm2game.so"
-unzip -l /tmp/m2bundle/metin2-live-base.apk | grep -q "lib/arm64-v8a/libm2db.so"
-(cd "$GM_DIR" && /tmp/gd/gradle-8.13/bin/gradle assembleDebug --no-daemon && cp app/build/outputs/apk/debug/app-debug.apk /tmp/m2bundle/metin2-gm-panel.apk)
+(cd "$CLIENT_ANDROID" && M2_SERVER_SRC=/tmp/m2dev-server-src /tmp/gd/gradle-8.13/bin/gradle assembleDebug --no-daemon --console=plain -Pm2profile=offline -Pm2abi=arm64-v8a && cp app/build/outputs/apk/debug/app-debug.apk /tmp/m2bundle/metin2-live-base.apk)
+python3 -c 'import zipfile; n=set(zipfile.ZipFile("/tmp/m2bundle/metin2-live-base.apk").namelist()); req=["lib/arm64-v8a/libmetin2_mobile.so","lib/arm64-v8a/libm2game.so","lib/arm64-v8a/libm2db.so"]; miss=[x for x in req if x not in n]; assert not miss, f"Eksik native kutuphaneler: {miss}"; print("OK: ARM64 native kutuphaneler dogrulandi.")'
+(cd "$GM_DIR" && /tmp/gd/gradle-8.13/bin/gradle assembleDebug --no-daemon --console=plain && cp app/build/outputs/apk/debug/app-debug.apk /tmp/m2bundle/metin2-gm-panel.apk)
 ls -lh /tmp/m2bundle/metin2-live-base.apk /tmp/m2bundle/metin2-gm-panel.apk
