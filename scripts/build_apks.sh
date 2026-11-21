@@ -14,6 +14,10 @@ mkdir -p /tmp/m2bundle
 mkdir -p "$CLIENT_ANDROID/app/src/main/assets"
 BASE_ZIP="$(pwd)/$CLIENT_ANDROID/app/src/main/assets/m2base.zip"
 rm -f "$BASE_ZIP"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+mkdir -p /tmp/m2stage/lib
+for f in posixpath.py genericpath.py stat.py; do if [ ! -f "/tmp/m2stage/lib/$f" ]; then fp=$(find client-src -name "$f" -print -quit 2>/dev/null || true); if [ -n "$fp" ]; then cp "$fp" "/tmp/m2stage/lib/$f"; fi; fi; done
+[ -f /tmp/m2stage/lib/posixpath.py ] || cp "$SCRIPT_DIR/posixpath_fallback.py" /tmp/m2stage/lib/posixpath.py
 (cd /tmp/m2stage && zip -qr -1 "$BASE_ZIP" .)
 (cd /tmp/m2serverpack && zip -qr -1 -u "$BASE_ZIP" .)
 ls -lh "$BASE_ZIP"
