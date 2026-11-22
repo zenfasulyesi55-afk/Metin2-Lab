@@ -15,10 +15,24 @@ gcols = [r[1] for r in ginfo]
 gvals = [1 if ("id" in r[1].lower() and r[5] == 1) else ("test" if "account" in r[1].lower() else ("Test" if "name" in r[1].lower() else ("127.0.0.1" if "contact" in r[1].lower() else ("ALL" if "server" in r[1].lower() else ("IMPLEMENTOR" if "authority" in r[1].lower() else ""))))) for r in ginfo]
 cur.execute("DELETE FROM gmlist") if gcols else None
 cur.execute("INSERT INTO gmlist (" + ",".join(gcols) + ") VALUES (" + ",".join(["?"] * len(gcols)) + ")", gvals) if gcols else None
-gvals2 = [2 if ("id" in r[1].lower() and r[5] == 1) else ("admin" if "account" in r[1].lower() else ("[SA]Admin" if "name" in r[1].lower() else ("127.0.0.1" if "contact" in r[1].lower() else ("ALL" if "server" in r[1].lower() else ("IMPLEMENTOR" if "authority" in r[1].lower() else ""))))) for r in ginfo]
+gvals2 = [2 if ("id" in r[1].lower() and r[5] == 1) else ("admin" if "account" in r[1].lower() else ("[OK]Admin" if "name" in r[1].lower() else ("127.0.0.1" if "contact" in r[1].lower() else ("ALL" if "server" in r[1].lower() else ("IMPLEMENTOR" if "authority" in r[1].lower() else ""))))) for r in ginfo]
 cur.execute("INSERT INTO gmlist (" + ",".join(gcols) + ") VALUES (" + ",".join(["?"] * len(gcols)) + ")", gvals2) if gcols else None
 con.commit() if con else None
 con.close() if con else None
+# M2_RENAME_OK_ADMIN
+for _r, _d, _fs in os.walk("/tmp/m2serverpack"):
+    for _fn in _fs:
+        if _fn.endswith((".sqlite3", ".db")):
+            try:
+                _sc = sqlite3.connect(os.path.join(_r, _fn))
+                _st = [x[0] for x in _sc.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+                if "player" in _st:
+                    _sc.execute("UPDATE player SET name='[OK]Admin' WHERE LOWER(name) IN ('[sa]admin','[tl]admin')")
+                    _sc.commit()
+                _sc.close()
+            except Exception:
+                pass
+
 main_cpp = "/tmp/m2dev-server-src/src/game/main.cpp"
 ms = open(main_cpp, "r", encoding="utf-8", errors="ignore").read()
 m = re.search(r"(?m)^[ \t]*(?:static[ \t]+)?void[ \t]+heartbeat[ \t]*\([^;{}]*\)[ \t\r\n]*\{", ms)
@@ -101,7 +115,7 @@ b.append("static int g_m2_adm_pclk = 0;")
 b.append("static const EAffectBits g_m2_adm_glows[7] = { " + ", ".join(_g_syms) + " };")
 b.append("static const int g_m2_adm_fxs[6] = { " + ", ".join(_fx_syms) + " };")
 
-b.append("static bool m2_adm_is_owner(const char* s) { return s && (s[0]=='t'||s[0]=='T')&&(s[1]=='e'||s[1]=='E')&&(s[2]=='s'||s[2]=='S')&&(s[3]=='t'||s[3]=='T') && s[4] == 0; }")
+b.append("static bool m2_adm_is_owner(const char* s) { if (!s) return false; bool t=(s[0]=='t'||s[0]=='T')&&(s[1]=='e'||s[1]=='E')&&(s[2]=='s'||s[2]=='S')&&(s[3]=='t'||s[3]=='T')&&s[4]==0; bool a=(s[0]=='a'||s[0]=='A')&&(s[1]=='d'||s[1]=='D')&&(s[2]=='m'||s[2]=='M')&&(s[3]=='i'||s[3]=='I')&&(s[4]=='n'||s[4]=='N')&&s[5]==0; return t || a; }")
 b.append("static bool m2_adm_db(char* out, size_t sz) {")
 b.append('const char* envs[] = { std::getenv("M2_DB_DIR"), std::getenv("SQLITE_DB_DIR") };')
 b.append('for (int i = 0; i < 2; ++i) { if (envs[i] && envs[i][0]) { std::snprintf(out, sz, "%s/common.sqlite3", envs[i]); if (::access(out, F_OK) == 0) return true; } }')

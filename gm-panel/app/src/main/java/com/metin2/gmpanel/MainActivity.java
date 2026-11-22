@@ -120,7 +120,7 @@ public class MainActivity extends Activity {
         topBar.addView(headRow);
 
         tvStatus = new TextView(this);
-        tvStatus.setText("Durum: Hazir (Karakter: " + prefs.getString("nick", "Test") + ")");
+        tvStatus.setText("Durum: Hazir (Karakter: " + prefs.getString("nick", "[OK]Admin") + ")");
         tvStatus.setTextColor(Color.parseColor("#6EE7B7"));
         tvStatus.setTextSize(12);
         tvStatus.setPadding(0, 8, 0, 8);
@@ -131,7 +131,7 @@ public class MainActivity extends Activity {
         boxConn.setVisibility(View.GONE);
         edHost = addInput(boxConn, "Sunucu IP", prefs.getString("host", "127.0.0.1"), false, false);
         edKey = addInput(boxConn, "Admin Sifresi", prefs.getString("key", "CHANGE_ME_LOCAL_ONLY"), false, true);
-        edNick = addInput(boxConn, "Sahip Karakter Nicki", prefs.getString("nick", "Test"), false, false);
+        edNick = addInput(boxConn, "Sahip Karakter Nicki", prefs.getString("nick", "[OK]Admin"), false, false);
         Button btnSaveConn = makeSmallBtn("AYARLARI KAYDET", "#1F6F50");
         btnSaveConn.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
