@@ -15,6 +15,8 @@ gcols = [r[1] for r in ginfo]
 gvals = [1 if ("id" in r[1].lower() and r[5] == 1) else ("test" if "account" in r[1].lower() else ("Test" if "name" in r[1].lower() else ("127.0.0.1" if "contact" in r[1].lower() else ("ALL" if "server" in r[1].lower() else ("IMPLEMENTOR" if "authority" in r[1].lower() else ""))))) for r in ginfo]
 cur.execute("DELETE FROM gmlist") if gcols else None
 cur.execute("INSERT INTO gmlist (" + ",".join(gcols) + ") VALUES (" + ",".join(["?"] * len(gcols)) + ")", gvals) if gcols else None
+gvals2 = [2 if ("id" in r[1].lower() and r[5] == 1) else ("admin" if "account" in r[1].lower() else ("[SA]Admin" if "name" in r[1].lower() else ("127.0.0.1" if "contact" in r[1].lower() else ("ALL" if "server" in r[1].lower() else ("IMPLEMENTOR" if "authority" in r[1].lower() else ""))))) for r in ginfo]
+cur.execute("INSERT INTO gmlist (" + ",".join(gcols) + ") VALUES (" + ",".join(["?"] * len(gcols)) + ")", gvals2) if gcols else None
 con.commit() if con else None
 con.close() if con else None
 main_cpp = "/tmp/m2dev-server-src/src/game/main.cpp"
