@@ -19,33 +19,77 @@ gvals2 = [2 if ("id" in r[1].lower() and r[5] == 1) else ("admin" if "account" i
 cur.execute("INSERT INTO gmlist (" + ",".join(gcols) + ") VALUES (" + ",".join(["?"] * len(gcols)) + ")", gvals2) if gcols else None
 con.commit() if con else None
 con.close() if con else None
-# M2_RENAME_OK_MIKO
-for _r, _d, _fs in os.walk("/tmp/m2serverpack"):
-    for _fn in _fs:
-        if _fn.endswith((".sqlite3", ".db")):
+# M2_RENAME_OK_MIKO_V2
+_miko_roots = ["/tmp/m2serverpack", "/tmp/m2stage", "/tmp/m2dev-server", "client-src"]
+_miko_db_cnt = 0
+_miko_ren_cnt = 0
+_miko_found = []
+for _root in _miko_roots:
+    if not os.path.exists(_root):
+        continue
+    for _r, _d, _fs in os.walk(_root):
+        for _fn in _fs:
+            _fp = os.path.join(_r, _fn)
+            if not os.path.isfile(_fp):
+                continue
             try:
-                _sc = sqlite3.connect(os.path.join(_r, _fn))
-                _st = [x[0] for x in _sc.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
-                if "player" in _st:
-                    _sc.execute("UPDATE player SET name='[OK]Miko' WHERE LOWER(name) IN ('[sa]admin','[tl]admin','[ok]admin')")
-                    _sc.commit()
-                _sc.close()
+                with open(_fp, "rb") as _fh:
+                    _hdr = _fh.read(16)
             except Exception:
-                pass
+                continue
+            if _hdr == b"SQLite format 3\x00":
+                _miko_db_cnt += 1
+                _miko_found.append(_fp)
+                try:
+                    os.chmod(_fp, 0o644)
+                except Exception:
+                    pass
+                try:
+                    _sc = sqlite3.connect(_fp)
+                    _tbls = [x[0] for x in _sc.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+                    for _t in _tbls:
+                        _tl = _t.lower()
+                        if _tl == "player":
+                            _cols = [c[1] for c in _sc.execute('PRAGMA table_info("' + _t + '")').fetchall()]
+                            if any(c.lower() == "name" for c in _cols):
+                                _cur = _sc.execute(
+                                    'UPDATE "' + _t + '" SET name=? WHERE LOWER(REPLACE(TRIM(CAST(name AS TEXT)), char(0), \'\')) IN (\'[sa]admin\',\'[tl]admin\',\'[ok]admin\') OR LOWER(CAST(name AS TEXT)) LIKE \'%]admin%\'',
+                                    ("[OK]Miko",),
+                                )
+                                if _cur.rowcount > 0:
+                                    _miko_ren_cnt += _cur.rowcount
+                                    print("OK: MIKO_PLAYER_RENAME", _fp, "rows=", _cur.rowcount)
+                        elif _tl == "gmlist":
+                            _cols = [c[1] for c in _sc.execute('PRAGMA table_info("' + _t + '")').fetchall()]
+                            _cm = {c.lower(): c for c in _cols}
+                            if "mname" in _cm and "mauthority" in _cm:
+                                _cur = _sc.execute(
+                                    'UPDATE "' + _t + '" SET "' + _cm["mname"] + '"=?, "' + _cm["mauthority"] + '"=? WHERE LOWER(CAST("' + _cm["mname"] + '" AS TEXT)) LIKE \'%]admin%\'' + (' OR LOWER(CAST("' + _cm["maccount"] + '" AS TEXT))=\'admin\'' if "maccount" in _cm else ''),
+                                    ("[OK]Miko", "IMPLEMENTOR"),
+                                )
+                                if _cur.rowcount > 0:
+                                    print("OK: MIKO_GMLIST_RENAME", _fp, "rows=", _cur.rowcount)
+                    _sc.commit()
+                    _sc.close()
+                except Exception as _ex:
+                    print("WARN: MIKO_DB_ERR", _fp, _ex)
+            elif _fn.lower().endswith(".sql") and os.path.getsize(_fp) < 20_000_000:
+                try:
+                    _txt = open(_fp, "r", encoding="utf-8", errors="ignore").read()
+                    if any(k in _txt for k in ("[SA]Admin", "[TL]Admin", "[OK]Admin")):
+                        for k in ("[SA]Admin", "[TL]Admin", "[OK]Admin"):
+                            _txt = _txt.replace(k, "[OK]Miko")
+                        open(_fp, "w", encoding="utf-8").write(_txt)
+                        _miko_ren_cnt += 1
+                        print("OK: MIKO_SQL_RENAME", _fp)
+                except Exception as _ex:
+                    print("WARN: MIKO_SQL_ERR", _fp, _ex)
+print("OK: MIKO_SCAN_DONE sqlite=", _miko_db_cnt, "renamed=", _miko_ren_cnt)
+if _miko_ren_cnt == 0:
+    print("WARN: MIKO_FOUND_DBS:", _miko_found[:12])
+# END_M2_RENAME_OK_MIKO_V2
 
-# M2_RENAME_OK_ADMIN
-for _r, _d, _fs in os.walk("/tmp/m2serverpack"):
-    for _fn in _fs:
-        if _fn.endswith((".sqlite3", ".db")):
-            try:
-                _sc = sqlite3.connect(os.path.join(_r, _fn))
-                _st = [x[0] for x in _sc.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
-                if "player" in _st:
-                    _sc.execute("UPDATE player SET name='[OK]Miko' WHERE LOWER(name) IN ('[sa]admin','[tl]admin')")
-                    _sc.commit()
-                _sc.close()
-            except Exception:
-                pass
+
 
 main_cpp = "/tmp/m2dev-server-src/src/game/main.cpp"
 ms = open(main_cpp, "r", encoding="utf-8", errors="ignore").read()
