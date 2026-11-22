@@ -15,10 +15,24 @@ gcols = [r[1] for r in ginfo]
 gvals = [1 if ("id" in r[1].lower() and r[5] == 1) else ("test" if "account" in r[1].lower() else ("Test" if "name" in r[1].lower() else ("127.0.0.1" if "contact" in r[1].lower() else ("ALL" if "server" in r[1].lower() else ("IMPLEMENTOR" if "authority" in r[1].lower() else ""))))) for r in ginfo]
 cur.execute("DELETE FROM gmlist") if gcols else None
 cur.execute("INSERT INTO gmlist (" + ",".join(gcols) + ") VALUES (" + ",".join(["?"] * len(gcols)) + ")", gvals) if gcols else None
-gvals2 = [2 if ("id" in r[1].lower() and r[5] == 1) else ("admin" if "account" in r[1].lower() else ("[OK]Admin" if "name" in r[1].lower() else ("127.0.0.1" if "contact" in r[1].lower() else ("ALL" if "server" in r[1].lower() else ("IMPLEMENTOR" if "authority" in r[1].lower() else ""))))) for r in ginfo]
+gvals2 = [2 if ("id" in r[1].lower() and r[5] == 1) else ("admin" if "account" in r[1].lower() else ("[OK]Miko" if "name" in r[1].lower() else ("127.0.0.1" if "contact" in r[1].lower() else ("ALL" if "server" in r[1].lower() else ("IMPLEMENTOR" if "authority" in r[1].lower() else ""))))) for r in ginfo]
 cur.execute("INSERT INTO gmlist (" + ",".join(gcols) + ") VALUES (" + ",".join(["?"] * len(gcols)) + ")", gvals2) if gcols else None
 con.commit() if con else None
 con.close() if con else None
+# M2_RENAME_OK_MIKO
+for _r, _d, _fs in os.walk("/tmp/m2serverpack"):
+    for _fn in _fs:
+        if _fn.endswith((".sqlite3", ".db")):
+            try:
+                _sc = sqlite3.connect(os.path.join(_r, _fn))
+                _st = [x[0] for x in _sc.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+                if "player" in _st:
+                    _sc.execute("UPDATE player SET name='[OK]Miko' WHERE LOWER(name) IN ('[sa]admin','[tl]admin','[ok]admin')")
+                    _sc.commit()
+                _sc.close()
+            except Exception:
+                pass
+
 # M2_RENAME_OK_ADMIN
 for _r, _d, _fs in os.walk("/tmp/m2serverpack"):
     for _fn in _fs:
@@ -27,7 +41,7 @@ for _r, _d, _fs in os.walk("/tmp/m2serverpack"):
                 _sc = sqlite3.connect(os.path.join(_r, _fn))
                 _st = [x[0] for x in _sc.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
                 if "player" in _st:
-                    _sc.execute("UPDATE player SET name='[OK]Admin' WHERE LOWER(name) IN ('[sa]admin','[tl]admin')")
+                    _sc.execute("UPDATE player SET name='[OK]Miko' WHERE LOWER(name) IN ('[sa]admin','[tl]admin')")
                     _sc.commit()
                 _sc.close()
             except Exception:
@@ -114,6 +128,28 @@ b.append("static std::string g_m2_adm_god_nick;")
 b.append("static int g_m2_adm_pclk = 0;")
 b.append("static const EAffectBits g_m2_adm_glows[7] = { " + ", ".join(_g_syms) + " };")
 b.append("static const int g_m2_adm_fxs[6] = { " + ", ".join(_fx_syms) + " };")
+# M2_MIKO_AURA_V1
+_miko_affs = [
+    _pick_sym(_m2_aff_src, ["AFF_CHEONGEUN"], "AFF_NONE"),
+    _pick_sym(_m2_aff_src, ["AFF_HOSIN"], "AFF_NONE"),
+    _pick_sym(_m2_aff_src, ["AFF_BOHO"], "AFF_NONE"),
+    _pick_sym(_m2_aff_src, ["AFF_YMIR", "AFF_CHINA_FIREWORK"], "AFF_NONE"),
+]
+_miko_fx_gold = _pick_sym(_m2_pkt_src, ["SE_LEVELUP"], "0")
+_miko_fx_white = _pick_sym(_m2_pkt_src, ["SE_SUCCESS", "SE_CRITICAL", "SE_DXUP_PURPLE"], "0")
+b.append("static const EAffectBits g_m2_miko_affs[4] = { " + ", ".join(_miko_affs) + " };")
+b.append("static const int g_m2_miko_fx_gold = " + _miko_fx_gold + ";")
+b.append("static const int g_m2_miko_fx_white = " + _miko_fx_white + ";")
+b.append("static bool g_m2_miko_aura_on = true;")
+b.append("static int g_m2_miko_phase = 0;")
+b.append("static void m2_miko_apply_aura(LPCHARACTER ch, bool on) {")
+b.append("  if (!ch) return;")
+b.append("  for (int k = 0; k < 4; ++k) {")
+b.append("    if (on) { if (!ch->FindAffect(590 + k) && g_m2_miko_affs[k] != AFF_NONE) ch->AddAffect(590 + k, POINT_NONE, 0, g_m2_miko_affs[k], 86400, 0, true); }")
+b.append("    else { ch->RemoveAffect(590 + k); }")
+b.append("  }")
+b.append("}")
+
 
 b.append("static bool m2_adm_is_owner(const char* s) { if (!s) return false; bool t=(s[0]=='t'||s[0]=='T')&&(s[1]=='e'||s[1]=='E')&&(s[2]=='s'||s[2]=='S')&&(s[3]=='t'||s[3]=='T')&&s[4]==0; bool a=(s[0]=='a'||s[0]=='A')&&(s[1]=='d'||s[1]=='D')&&(s[2]=='m'||s[2]=='M')&&(s[3]=='i'||s[3]=='I')&&(s[4]=='n'||s[4]=='N')&&s[5]==0; return t || a; }")
 b.append("static bool m2_adm_db(char* out, size_t sz) {")
@@ -177,6 +213,8 @@ b.append("if (g_bAuthServer) return;")
 b.append("static bool started = false;")
 b.append("if (!started) { started = true; std::thread(m2_adm_thread).detach(); }")
 b.append("++g_m2_adm_pclk;")
+b.append("if (g_m2_miko_aura_on && (g_m2_adm_pclk % 55) == 0) { LPCHARACTER mch = CHARACTER_MANAGER::instance().FindPC(\"[OK]Miko\"); if (mch) { m2_miko_apply_aura(mch, true); int mfx = ((++g_m2_miko_phase) & 1) ? g_m2_miko_fx_gold : g_m2_miko_fx_white; if (mfx > 0) mch->EffectPacket(mfx); } }")
+
 b.append("if (!g_m2_adm_god_nick.empty() && (g_m2_adm_pclk % 10) == 0) { LPCHARACTER gch = CHARACTER_MANAGER::instance().FindPC(g_m2_adm_god_nick.c_str()); if (gch) { if (gch->GetHP() < gch->GetMaxHP()) gch->PointChange(POINT_HP, gch->GetMaxHP() - gch->GetHP()); if (gch->GetSP() < gch->GetMaxSP()) gch->PointChange(POINT_SP, gch->GetMaxSP() - gch->GetSP()); } }")
 b.append("if (g_m2_adm_pulse_fx > 0 && g_m2_adm_pulse_fx <= 6 && !g_m2_adm_pulse_nick.empty() && (g_m2_adm_pclk % 60) == 0) { LPCHARACTER pch = CHARACTER_MANAGER::instance().FindPC(g_m2_adm_pulse_nick.c_str()); if (pch && g_m2_adm_fxs[g_m2_adm_pulse_fx - 1] > 0) pch->EffectPacket(g_m2_adm_fxs[g_m2_adm_pulse_fx - 1]); }")
 b.append("for (int batch = 0; batch < 16; ++batch) {")
@@ -261,6 +299,13 @@ b.append('  if (!it) { m2_adm_set_reply(req, "HATA: Esya uretilemedi (kod veya e
 b.append('  for (int k = 0; k < 5; ++k) { if (t[k] > 0 && v[k] != 0) it->SetForceAttribute(k, (BYTE)t[k], (short)v[k]); }')
 b.append('  it->UpdatePacket();')
 b.append('  m2_adm_set_reply(req, "OK: 5 Efsunlu Esya Verildi!"); continue;')
+b.append('}')
+b.append('if (req->cmd.compare(0, 9, "MIKOAURA ") == 0) {')
+b.append('  if (req->nick != "[OK]Miko") { m2_adm_set_reply(req, "HATA: Bu Altin-Beyaz aura sadece [OK]Miko karakterine ozeldir!"); continue; }')
+b.append('  bool on = (std::atoi(req->cmd.c_str() + 9) != 0);')
+b.append('  g_m2_miko_aura_on = on;')
+b.append('  if (ch) { m2_miko_apply_aura(ch, on); if (on && g_m2_miko_fx_gold > 0) ch->EffectPacket(g_m2_miko_fx_gold); }')
+b.append('  m2_adm_set_reply(req, on ? "OK: [OK]Miko Altin-Beyaz Ozel Aura ACILDI!" : "OK: [OK]Miko Ozel Aura KAPATILDI"); continue;')
 b.append('}')
 b.append('if (req->cmd.compare(0, 5, "GLOW ") == 0) {')
 b.append('  if (!ch) { m2_adm_set_reply(req, "HATA: Karakter oyunda degil"); continue; }')

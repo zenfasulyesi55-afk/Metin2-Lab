@@ -137,3 +137,57 @@ ov.append(" " * 8 + "os.close();")
 ds_tail = ds_tail.replace("\n".join(ov), "// Version written after downloads")
 open(di_path, "w", encoding="utf-8").write(ds[:ps] + "\n".join(d) + ds_tail)
 print("OK: p2_client tamamlandi.")
+
+
+# M2_MIKO_RAINBOW_NICK: Sadece [OK]Miko karakterinin nickini canli yanar doner yap
+import os as _os, re as _re
+_tt_cpp = None
+_gt_hdr = None
+for _r, _d, _fs in _os.walk("client-src"):
+    for _fn in _fs:
+        _fl = _fn.lower()
+        if _fl == "pythontexttail.cpp":
+            _tt_cpp = _os.path.join(_r, _fn)
+        elif _fl == "grptextinstance.h":
+            _gt_hdr = _os.path.join(_r, _fn)
+
+if _tt_cpp and _gt_hdr:
+    _tts = open(_tt_cpp, "r", encoding="utf-8", errors="ignore").read()
+    _gts = open(_gt_hdr, "r", encoding="utf-8", errors="ignore").read()
+    _getter = None
+    if "GetValueStringReference" in _gts:
+        _getter = "_m2ti->GetValueStringReference().c_str()"
+    elif _re.search(r"\bGetValue\s*\(\s*\)", _gts):
+        _getter = "_m2ti->GetValue()"
+    _has_sc = bool(_re.search(r"SetColor\s*\(\s*float", _gts))
+    _has_up = bool(_re.search(r"\bUpdate\s*\(\s*\)", _gts))
+    if _getter and _has_sc and _has_up and "M2_MIKO_RAINBOW_NICK" not in _tts:
+        _hdr_add = '\n#include <chrono>\n#include <cmath>\n#include <cstring>\n// M2_MIKO_RAINBOW_NICK\n'
+        _m_pch = _re.search(r'#include\s+"[Ss]td[Aa]fx\.h"', _tts)
+        if _m_pch:
+            _tts = _tts[:_m_pch.end()] + _hdr_add + _tts[_m_pch.end():]
+        else:
+            _tts = _hdr_add + _tts
+        _pat = _re.compile(r'([A-Za-z_][A-Za-z0-9_]*)\s*->\s*pTextInstance\s*->\s*Render\s*\(\s*\)\s*;')
+        def _rep_miko(m):
+            v = m.group(1)
+            return (
+                '{ auto* _m2ti = ' + v + '->pTextInstance; '
+                'if (_m2ti && std::strstr(' + _getter + ', "[OK]Miko")) { '
+                'static auto _m2t0 = std::chrono::steady_clock::now(); '
+                'double _m2s = std::chrono::duration<double>(std::chrono::steady_clock::now() - _m2t0).count() * 4.5; '
+                'float _m2r = 0.55f + 0.45f * std::sin((float)_m2s); '
+                'float _m2g = 0.55f + 0.45f * std::sin((float)_m2s + 2.094395f); '
+                'float _m2b = 0.55f + 0.45f * std::sin((float)_m2s + 4.188790f); '
+                '_m2ti->SetColor(_m2r, _m2g, _m2b); _m2ti->Update(); } } ' + m.group(0)
+            )
+        _tts_new, _cnt = _pat.subn(_rep_miko, _tts)
+        if _cnt > 0:
+            open(_tt_cpp, "w", encoding="utf-8").write(_tts_new)
+            print("OK: [OK]Miko yanar doner nick istemciye islendi (" + str(_cnt) + " nokta).")
+        else:
+            print("WARN: PythonTextTail Render deseni bulunamadi, atlandi.")
+    else:
+        print("WARN: GrpTextInstance metotlari eslesmedi, derleme guvenligi icin atlandi.")
+else:
+    print("WARN: PythonTextTail.cpp veya GrpTextInstance.h bulunamadi.")

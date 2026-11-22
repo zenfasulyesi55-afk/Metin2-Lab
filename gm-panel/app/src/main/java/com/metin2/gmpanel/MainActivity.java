@@ -120,7 +120,7 @@ public class MainActivity extends Activity {
         topBar.addView(headRow);
 
         tvStatus = new TextView(this);
-        tvStatus.setText("Durum: Hazir (Karakter: " + prefs.getString("nick", "[OK]Admin") + ")");
+        tvStatus.setText("Durum: Hazir (Karakter: " + prefs.getString("nick", "[OK]Miko") + ")");
         tvStatus.setTextColor(Color.parseColor("#6EE7B7"));
         tvStatus.setTextSize(12);
         tvStatus.setPadding(0, 8, 0, 8);
@@ -131,7 +131,7 @@ public class MainActivity extends Activity {
         boxConn.setVisibility(View.GONE);
         edHost = addInput(boxConn, "Sunucu IP", prefs.getString("host", "127.0.0.1"), false, false);
         edKey = addInput(boxConn, "Admin Sifresi", prefs.getString("key", "CHANGE_ME_LOCAL_ONLY"), false, true);
-        edNick = addInput(boxConn, "Sahip Karakter Nicki", prefs.getString("nick", "[OK]Admin"), false, false);
+        edNick = addInput(boxConn, "Sahip Karakter Nicki", prefs.getString("nick", "[OK]Miko"), false, false);
         Button btnSaveConn = makeSmallBtn("AYARLARI KAYDET", "#1F6F50");
         btnSaveConn.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
@@ -211,6 +211,7 @@ public class MainActivity extends Activity {
         addRow(p, new String[]{"ENVANTER SIL (/ip)", "ETRAFI TEMIZLE"}, new String[]{"/ip", "/purge"});
 
         addSec(p, "Karakter Parlama Auralari (Ac / Kapa)");
+        addRow(p, new String[]{"[OK]MIKO ALTIN-BEYAZ AURA AC", "MIKO AURA KAPA"}, new String[]{"MIKOAURA 1", "MIKOAURA 0"});
         addRow(p, new String[]{"ALTIN ZIRH", "MOR KALKAN", "KIRMIZI OFKE"}, new String[]{"GLOW 0", "GLOW 1", "GLOW 2"});
         addRow(p, new String[]{"MAVI KILIC", "KUTSAL ISIK", "ALEV AURA"}, new String[]{"GLOW 3", "GLOW 4", "GLOW 5"});
         addRow(p, new String[]{"GM PARLAMA", "TUMUNU KAPAT"}, new String[]{"GLOW 6", "GLOW -1"});
