@@ -268,7 +268,7 @@ public class MainActivity extends Activity {
         }});
     }
     void copyCode(String s) {
-        ((ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText("vnum", s));
+        ((android.content.ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE)).setPrimaryClip(ClipData.newPlainText("vnum", s));
         Toast.makeText(this, "Kopyalandi: " + s, Toast.LENGTH_SHORT).show();
     }
     int dp(int v){ return (int)(v * getResources().getDisplayMetrics().density); }
