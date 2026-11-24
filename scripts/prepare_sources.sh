@@ -39,5 +39,7 @@ rm -rf client-src /tmp/m2dev-server-src /tmp/m2dev-server /tmp/m2dev-client \
                                                     "client-src/r10dev.net OPENGL-ITJA/android/tools/stage_client_data.sh" \
                                                       /tmp/m2dev-client /tmp/m2stage en
 
-                                                      rm -rf /tmp/m2dev-client /tmp/m2dev-server
+                                                      mkdir -p "client-src/r10dev.net OPENGL-ITJA/android/app/src/main/assets/splash"
+find /tmp/m2dev-client/assets \( -name login.jpg -o -name select.jpg -o -name background_loading_samahi1.jpg -o -name background_loading_shamannpet.jpg \) -exec cp -f {} "client-src/r10dev.net OPENGL-ITJA/android/app/src/main/assets/splash/" \;
+rm -rf /tmp/m2dev-client /tmp/m2dev-server
                                                       
