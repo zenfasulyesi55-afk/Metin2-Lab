@@ -180,6 +180,68 @@ public class MainActivity extends Activity {
             rCmd("/i 5129 1","/i 11899 1","/i 12649 1","/i 13129 1","/i 14209 1","/i 16209 1","/i 17209 1","/i 15209 1") });
         k.addView(btnFull("Efsun + Iksir + Pelerin Paketi", GRN, new View.OnClickListener(){ public void onClick(View v){
             sendCmds(new String[]{"/i 71084 200","/i 71085 200","/i 25040 50","/i 70038 200","/i 27102 200","/i 27105 200"}); }}));
+        
+        LinearLayout au = sec(box, "OZEL AURA ([OK]Miko)");
+        grid(au, new String[]{"Altin-Beyaz Aura AC", "Aura KAPAT"}, new Runnable[]{
+            rCmd("MIKOAURA 1"), rCmd("MIKOAURA 0")
+        });
+
+        LinearLayout edSec = sec(box, "5 EFSUN + 3 TAS ITEM EDITORU");
+        final android.widget.EditText edVnum = new android.widget.EditText(this);
+        edVnum.setHint("Item Kodu (orn: 189 Zehir +9)");
+        edVnum.setText("189");
+        edVnum.setTextColor(0xFFFFFFFF);
+        edVnum.setHintTextColor(0xFF999999);
+        edVnum.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        edSec.addView(edVnum);
+
+        final String[] bNames = {"0: Yok","1: Max HP","5: Guc","6: Ceviklik","7: Zeka","8: Canlilik","9: Saldiri Hizi","10: Hareket Hizi","15: Kritik","16: Delici","17: Yari Insan","29: Kilic Sav.","30: Cift El Sav.","31: Bicak Sav.","37: Buyu Hizi","53: Saldiri Deg.","71: Beceri Hasari","72: Ortalama Zarar"};
+        final int[] bIds = {0,1,5,6,7,8,9,10,15,16,17,29,30,31,37,53,71,72};
+        final android.widget.Spinner[] spB = new android.widget.Spinner[5];
+        final android.widget.EditText[] edB = new android.widget.EditText[5];
+        for (int i = 0; i < 5; i++) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            spB[i] = new android.widget.Spinner(this);
+            android.widget.ArrayAdapter<String> ad = new android.widget.ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, bNames);
+            spB[i].setAdapter(ad);
+            edB[i] = new android.widget.EditText(this);
+            edB[i].setHint("Deger");
+            edB[i].setText("0");
+            edB[i].setTextColor(0xFFFFFFFF);
+            edB[i].setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_FLAG_SIGNED);
+            row.addView(spB[i], new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 2f));
+            row.addView(edB[i], new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+            edSec.addView(row);
+        }
+
+        final String[] sNames = {"0: Tas Yok","28430: Oldurucu Darbe +4","28431: Kavrama +4","28432: Sogutma +4","28433: Savasci +4","28434: Ninja +4","28435: Sura +4","28436: Saman +4","28437: Canavar +4","28438: Korunma +4","28439: Kurnazlik +4","28440: Sihir +4","28441: Yasam +4","28442: Savunma +4","28443: Hiz +4"};
+        final int[] sIds = {0,28430,28431,28432,28433,28434,28435,28436,28437,28438,28439,28440,28441,28442,28443};
+        final android.widget.Spinner[] spS = new android.widget.Spinner[3];
+        for (int i = 0; i < 3; i++) {
+            spS[i] = new android.widget.Spinner(this);
+            android.widget.ArrayAdapter<String> ad = new android.widget.ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, sNames);
+            spS[i].setAdapter(ad);
+            edSec.addView(spS[i]);
+        }
+
+        edSec.addView(btnFull("5 Efsun + 3 Tasli Item Bas", GRN, new View.OnClickListener(){
+            public void onClick(View v){
+                String vn = edVnum.getText().toString().trim();
+                if (vn.isEmpty()) vn = "189";
+                StringBuilder sb = new StringBuilder("MAKEITEM ").append(vn);
+                for (int i = 0; i < 5; i++) {
+                    String val = edB[i].getText().toString().trim();
+                    if (val.isEmpty()) val = "0";
+                    sb.append(" ").append(bIds[spB[i].getSelectedItemPosition()]).append(" ").append(val);
+                }
+                for (int i = 0; i < 3; i++) {
+                    sb.append(" ").append(sIds[spS[i].getSelectedItemPosition()]);
+                }
+                sendCmds(new String[]{sb.toString()});
+            }
+        }));
+
         return wrapScroll(box);
     }
     View buildAutoNotice() {
