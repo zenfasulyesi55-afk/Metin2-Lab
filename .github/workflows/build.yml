@@ -82,7 +82,7 @@
           "env": {
             "GH_TOKEN": "${{ secrets.GITHUB_TOKEN }}"
           },
-          "run": "ls -lh /tmp/m2bundle/metin2-live-base.apk /tmp/m2bundle/metin2-gm-panel.apk && (gh release view latest-apks >/dev/null 2>&1 || gh release create latest-apks --title \"Latest APKs\" --notes \"Guncel APK paketleri\") && gh release upload latest-apks /tmp/m2bundle/metin2-live-base.apk /tmp/m2bundle/metin2-gm-panel.apk --clobber"
+          "run": "cd self-repo && ls -lh /tmp/m2bundle/metin2-live-base.apk /tmp/m2bundle/metin2-gm-panel.apk && (gh release view latest-apks >/dev/null 2>&1 || gh release create latest-apks --title \"Latest APKs\" --notes \"Guncel APK paketleri\") && gh release upload latest-apks /tmp/m2bundle/metin2-live-base.apk /tmp/m2bundle/metin2-gm-panel.apk --clobber"
         }
       ]
     }
