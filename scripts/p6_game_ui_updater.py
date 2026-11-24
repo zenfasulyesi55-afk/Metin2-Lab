@@ -2,7 +2,7 @@ import os, shutil
 base = "client-src/r10dev.net OPENGL-ITJA/android/app/src/main"
 jdir = os.path.join(base, "java/com/metin2/client")
 for f in ("GameApkProvider.java", "GameUpdaterUI.java"):
-    shutil.copyfile(os.path.join("scripts/game_extras", f), os.path.join(jdir, f))
+    shutil.copyfile(os.path.join(os.path.join(os.path.dirname(os.path.abspath(__file__)), "game_extras"), f), os.path.join(jdir, f))
 ma = os.path.join(jdir, "MainActivity.java")
 s = open(ma).read()
 if "GameUpdaterUI" not in s:
