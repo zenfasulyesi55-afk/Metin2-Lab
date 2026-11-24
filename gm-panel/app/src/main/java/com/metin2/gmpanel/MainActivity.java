@@ -30,7 +30,7 @@ public class MainActivity extends Activity {
         hdr.addView(ttl); hdr.addView(bConn); root.addView(hdr);
 
         tvStatus = txt("Durum: Hazir (" + prefs.getString(PanelDefaults.K_NICK, PanelDefaults.D_NICK) + ")", 12, SUB, false);
-        tvStatus.setBackgroundColor(0xFF10151F); tvStatus.setPadding(dp(12),dp(4),dp(12),dp(6)); root.addView(tvStatus);
+        tvStatus.setBackgroundColor(0xFF10151F); tvStatus.setPadding(dp(12),dp(4),dp(12),dp(6)); root.addView(tvStatus); PanelUpdater.attach(this,root,tvStatus);
 
         connBox = card(); connBox.setVisibility(View.GONE);
         edHost = inp(connBox, "Sunucu IP", prefs.getString(PanelDefaults.K_HOST, PanelDefaults.D_HOST));

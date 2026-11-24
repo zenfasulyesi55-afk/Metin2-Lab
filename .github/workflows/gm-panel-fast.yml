@@ -1,32 +1,25 @@
-name: GM Panel Hizli Derleme (1 dk)
+name: GM Panel Hizli Derleme
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
-    paths:
-      - 'gm-panel/**'
+    branches: [main]
+    paths: ['gm-panel/**']
 permissions:
   contents: write
 jobs:
-  build-gm-panel:
+  build:
     runs-on: ubuntu-latest
+    env:
+      KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+      KEYSTORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+      KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      KEY_PASS: ${{ secrets.ANDROID_KEY_PASS }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
+        with: {distribution: temurin, java-version: '17'}
       - uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: '8.13'
-      - name: GM Panel APK Derle
-        run: |
-          cd gm-panel
-          gradle assembleDebug --no-daemon --console=plain
-          cp app/build/outputs/apk/debug/app-debug.apk /tmp/metin2-gm-panel.apk
-      - name: Releases Yukle
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release view latest-apks >/dev/null 2>&1 || gh release create latest-apks --title "Latest APKs" --notes "Guncel APK paketleri"
-          gh release upload latest-apks /tmp/metin2-gm-panel.apk --clobber
+        with: {gradle-version: '8.13'}
+      - run: bash scripts/prepare_keystore.sh && cd gm-panel && gradle assembleDebug --no-daemon && cp app/build/outputs/apk/debug/app-debug.apk /tmp/metin2-gm-panel.apk
+      - env: {GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}'}
+        run: gh release view latest-apks >/dev/null 2>&1 || gh release create latest-apks -t "Latest APKs" -n "APKs"; gh release upload latest-apks /tmp/metin2-gm-panel.apk --clobber
