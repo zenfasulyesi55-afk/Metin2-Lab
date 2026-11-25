@@ -27,7 +27,7 @@ def patch_plaza_npcs():
         if "npc.txt" not in fs or f not in GRD: continue
         gv, gx, gy = GRD[f]; p = os.path.join(r, "npc.txt")
         raw = open(p, "rb").read().decode("latin1")
-        if "# MIKO_PLAZA_NPCS_V1" in raw: continue
+        if "// MIKO_PLAZA_NPCS_V1" in raw: continue
         for ln in raw.splitlines():
             ps = ln.split()
             if len(ps) >= 11 and ps[0] == "m" and ps[10] == gv:
@@ -35,7 +35,7 @@ def patch_plaza_npcs():
                 except: pass
                 break
         sx = gx - ((len(NPCS) - 1) * 3) // 2
-        add = ["", "# MIKO_PLAZA_NPCS_V1"] + [f"m\t{sx+i*3}\t{gy+6}\t0\t0\t0\t1\t1m\t100\t1\t{v}" for i, v in enumerate(NPCS)]
+        add = ["", "// MIKO_PLAZA_NPCS_V1"] + [f"m\t{sx+i*3}\t{gy+6}\t0\t0\t0\t1\t1m\t100\t1\t{v}" for i, v in enumerate(NPCS)]
         open(p, "wb").write((raw.rstrip("\r\n") + "\n" + "\n".join(add) + "\n").encode("latin1"))
 def patch_horse_cpp():
     if not os.path.isdir(SRC): return

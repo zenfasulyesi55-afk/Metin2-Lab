@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os, re, sqlite3
-_sc = sqlite3.connect
-sqlite3.connect = lambda *a, **k: (lambda c: (c.create_function("m2_enum_text", -1, lambda *x: x[0] if x else None), c.create_function("m2_set_text", -1, lambda *x: x[0] if x else None), c.execute("PRAGMA ignore_check_constraints=ON"), c)[-1])(_sc(*a, **k))
+_orig_sc = sqlite3.connect
+sqlite3.connect = lambda *a, **k: (lambda c: (c.create_function("m2_enum_text", -1, lambda *x: x[0] if x else None), c.create_function("m2_set_text", -1, lambda *x: x[0] if x else None), c.execute("PRAGMA ignore_check_constraints=ON"), c)[-1])(_orig_sc(*a, **k))
 ADMIN_SECRET = (os.environ.get("ADMIN_SECRET") or "").strip() or "CHANGE_ME_LOCAL_ONLY"
 ADMIN_SECRET_CPP = ADMIN_SECRET.replace("\\", "\\\\").replace('"', '\\"')
 db_path = "/tmp/m2serverpack/server/sqlite-seed/common.sqlite3"
