@@ -30,7 +30,7 @@ public class GameUpdaterUI {
   }
   static void check(final Activity a, final Button b, final TextView st) {
     new Thread(new Runnable() { public void run() { try {
-      HttpURLConnection c = (HttpURLConnection) new URL("https://api.github.com/repos/zenfasulyesi55-afk/Metin2-Lab/releases/tags/latest-apks").openConnection();
+      HttpURLConnection c = (HttpURLConnection) new URL("https://api.github.com/repos/zenfasulyesi55-afk/Metin2-Lab-Releases/releases/tags/latest-apks").openConnection();
       c.setRequestProperty("User-Agent", "M2");
       String res = new java.util.Scanner(c.getInputStream()).useDelimiter("\\A").next();
       JSONArray arr = new JSONObject(res).getJSONArray("assets");

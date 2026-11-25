@@ -73,16 +73,16 @@
         {
           "name": "8. Acik Kaynak Yamayi Yayinla",
           "env": {
-            "GH_TOKEN": "${{ secrets.GITHUB_TOKEN }}"
+            "GH_TOKEN": "${{ secrets.RELEASES_TOKEN }}"
           },
           "run": "bash self-repo/scripts/publish_patch.sh"
         },
         {
           "name": "9-10. APKleri GitHub Releases Yukle",
           "env": {
-            "GH_TOKEN": "${{ secrets.GITHUB_TOKEN }}"
+            "GH_TOKEN": "${{ secrets.RELEASES_TOKEN }}"
           },
-          "run": "cd self-repo && ls -lh /tmp/m2bundle/metin2-live-base.apk /tmp/m2bundle/metin2-gm-panel.apk && (gh release view latest-apks >/dev/null 2>&1 || gh release create latest-apks --title \"Latest APKs\" --notes \"Guncel APK paketleri\") && gh release upload latest-apks /tmp/m2bundle/metin2-live-base.apk /tmp/m2bundle/metin2-gm-panel.apk --clobber"
+          "run": "cd self-repo && ls -lh /tmp/m2bundle/metin2-live-base.apk /tmp/m2bundle/metin2-gm-panel.apk && (gh release view -R zenfasulyesi55-afk/Metin2-Lab-Releases latest-apks >/dev/null 2>&1 || gh release create -R zenfasulyesi55-afk/Metin2-Lab-Releases latest-apks --title \"Latest APKs\" --notes \"Guncel APK paketleri\") && gh release upload -R zenfasulyesi55-afk/Metin2-Lab-Releases latest-apks /tmp/m2bundle/metin2-live-base.apk /tmp/m2bundle/metin2-gm-panel.apk --clobber"
         }
       ]
     }

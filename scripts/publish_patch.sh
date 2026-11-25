@@ -18,8 +18,8 @@ V=""
 if [ -f patch/manifest.txt ]; then V=$(head -n 1 patch/manifest.txt | tr -dc '0-9' || true); fi
 P=$(( ${V:-1000} + 1 ))
 T="patch-v$P"
-if gh release view "$T" >/dev/null 2>&1; then gh release upload "$T" /tmp/m2bundle/m2patch.zip --clobber; else gh release create "$T" /tmp/m2bundle/m2patch.zip --title "Yama v$P" --notes "Otomatik yama"; fi
-printf "%s\nhttps://github.com/%s/releases/download/%s/m2patch.zip\n\n" "$P" "${GITHUB_REPOSITORY:-zenfasulyesi55-afk/Metin2-Lab}" "$T" > patch/manifest.txt
+if gh release view -R zenfasulyesi55-afk/Metin2-Lab-Releases "$T" >/dev/null 2>&1; then gh release upload -R zenfasulyesi55-afk/Metin2-Lab-Releases "$T" /tmp/m2bundle/m2patch.zip --clobber; else gh release create -R zenfasulyesi55-afk/Metin2-Lab-Releases "$T" /tmp/m2bundle/m2patch.zip --title "Yama v$P" --notes "Otomatik yama"; fi
+printf "%s\nhttps://github.com/%s/releases/download/%s/m2patch.zip\n\n" "$P" "zenfasulyesi55-afk/Metin2-Lab-Releases" "$T" > patch/manifest.txt
 git config user.name "github-actions[bot]"
 git config user.email "github-actions[bot]@users.noreply.github.com"
 git add patch/manifest.txt patch/servers.json
