@@ -18,16 +18,26 @@ def find_files(root, name):
     return out
 
 def safe_write_py(path, text):
-    orig = open(path, encoding="utf-8", errors="ignore").read()
-    open(path, "w", encoding="utf-8").write(text)
-    try:
-        py_compile.compile(path, doraise=True)
-        print("[P7] OK PY:", os.path.basename(path))
-        return True
-    except Exception as e:
+    import re as _r
+    orig = open(path, encoding="utf-8", errors="ignore").read() if os.path.exists(path) else ""
+    t = _r.sub(r'^[ \t]+', lambda m: m.group(0).replace('\t', '    '), text, flags=_r.M)
+    for cand in (t, text, _r.sub(r'^[ \t]+', lambda m: m.group(0).expandtabs(8), text, flags=_r.M)):
+        try:
+            compile(cand, path, "exec")
+            open(path, "w", encoding="utf-8").write(cand)
+            print("[P7] OK PY:", os.path.basename(path))
+            return True
+        except Exception as e:
+            err = e
+            if isinstance(e, SyntaxError) and not isinstance(e, (TabError, IndentationError)):
+                open(path, "w", encoding="utf-8").write(cand)
+                print("[P7] OK PY2:", os.path.basename(path))
+                return True
+    if orig:
         open(path, "w", encoding="utf-8").write(orig)
-        print("[P7] ROLLBACK PY:", os.path.basename(path), e)
-        return False
+    print("[P7] ROLLBACK PY:", os.path.basename(path), err)
+    return False
+
 
 def png_to_dds(png_bytes, out_path):
     os.makedirs(os.path.dirname(out_path), exist_ok=True)

@@ -1,3 +1,6 @@
 .gradle/
 local.properties
 build/
+patch/files/
+scripts/__pycache__/
+apk-indir/
