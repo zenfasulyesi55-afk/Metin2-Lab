@@ -143,7 +143,9 @@ def sync_saltanat_assets():
     print(f"[p9] Saltanat varliklari eklendi: {copied}")
     return copied
 
-def fix_skybox_maps():
+def fix_skybox_maps()
+    patch_saltanat_ui()
+    patch_saltanat_lists():
     if not os.path.isdir(STAGE_DIR):
         return
     fixed = 0
@@ -157,6 +159,70 @@ def fix_skybox_maps():
             open(p, "w", encoding="utf-8").write("\n".join(lines) + "\n")
             fixed += 1
     print(f"[p9] Skybox setting.txt onarildi: {fixed}")
+
+
+def patch_saltanat_ui():
+    if not os.path.isdir(STAGE_DIR):
+        return
+    n = 0
+    for r, _, fs in os.walk(STAGE_DIR):
+        for f in fs:
+            if f.lower() != "uitooltip.py":
+                continue
+            fp = os.path.join(r, f)
+            s = open(fp, encoding="utf-8", errors="ignore").read()
+            orig = s
+            s = re.sub(r"SPECIAL_POSITIVE_COLOR\s*=\s*grp\.GenerateColor\([^)]+\)",
+                "SPECIAL_POSITIVE_COLOR = grp.GenerateColor(0.0, 0.75, 1.0, 1.0)", s, count=1)
+            s = re.sub(r"SPECIAL_POSITIVE_COLOR2\s*=\s*grp\.GenerateColor\([^)]+\)",
+                "SPECIAL_POSITIVE_COLOR2 = grp.GenerateColor(0.8824, 0.9804, 0.8824, 1.0)", s, count=1)
+            c_time = "grp.GenerateColor(1.0, 0.513725, 0.003922, 1.0))"
+            s = s.replace("localeInfo.SecondToDHM(restSecond), self.NORMAL_COLOR)",
+                f"localeInfo.SecondToDHM(restSecond), {c_time}")
+            s = s.replace("localeInfo.SecondToDHM(leftSec), self.NORMAL_COLOR)",
+                f"localeInfo.SecondToDHM(leftSec), {c_time}")
+            if s != orig:
+                open(fp, "w", encoding="utf-8").write(s)
+                n += 1
+    print(f"[p9] Saltanat UI: {n}")
+
+def patch_saltanat_lists():
+    if not os.path.isdir(STAGE_DIR):
+        return
+    npcs = [("34001","pet_demon_1"),("34002","pet_demon_2"),("34003","pet_demon_3"),
+            ("34004","pet_demon_4"),("34005","pet_demon_5"),("20240","plechi_bonedragon_mount"),
+            ("20400","drakman"),("6401","fire_dragon2"),("6402","minoking"),
+            ("6403","naga_mob_03"),("6404","naga_mob_04")]
+    nc = 0
+    for r, _, fs in os.walk(STAGE_DIR):
+        for f in fs:
+            if f.lower() == "npclist.txt":
+                fp = os.path.join(r, f)
+                s = open(fp, encoding="utf-8", errors="ignore").read()
+                add = [f"{v}\t{m}" for v, m in npcs if f"\t{m}" not in s]
+                if add:
+                    open(fp, "a", encoding="utf-8").write("\n" + "\n".join(add) + "\n")
+                    nc += len(add)
+    wd = os.path.join(SALTANAT_DIR, "models/ymir work/item/weapon")
+    id_ = os.path.join(SALTANAT_DIR, "models/icon/item")
+    ws = sorted(f for f in os.listdir(wd) if f.lower().endswith(".gr2")) if os.path.isdir(wd) else []
+    ics = sorted(f for f in os.listdir(id_) if f.lower().endswith(".tga")) if os.path.isdir(id_) else []
+    ic = 0
+    if ws and ics:
+        for r, _, fs in os.walk(STAGE_DIR):
+            for f in fs:
+                if f.lower() == "item_list.txt":
+                    fp = os.path.join(r, f)
+                    s = open(fp, encoding="utf-8", errors="ignore").read()
+                    rows = []
+                    for i, wf in enumerate(ws):
+                        vn = str(95000 + i)
+                        if f"\n{vn}\t" not in s:
+                            rows.append(f"{vn}\tWEAPON\ticon/item/{ics[i % len(ics)]}\td:/ymir work/item/weapon/{wf}")
+                    if rows:
+                        open(fp, "a", encoding="utf-8").write("\n" + "\n".join(rows) + "\n")
+                        ic += len(rows)
+    print(f"[p9] Listeler: npc={nc}, silah={ic}")
 
 def run():
     print("=== [P9] SALTANAT 300 OVERHAUL ===")
