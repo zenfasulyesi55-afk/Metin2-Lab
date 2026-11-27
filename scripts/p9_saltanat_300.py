@@ -222,6 +222,75 @@ def patch_saltanat_lists():
                         ic += len(rows)
     print(f"[p9] Listeler: npc={nc}, silah={ic}")
 
+
+def patch_saltanat_server():
+    if not os.path.isdir(SERVER_PACK):
+        return
+    mobs = [
+        ("34001","Demon Pet I",True),("34002","Demon Pet II",True),
+        ("34003","Demon Pet III",True),("34004","Demon Pet IV",True),
+        ("34005","Demon Pet V",True),("20240","Ejderha Binegi",True),
+        ("20400","Drakman Saltanat",True),("6401","Ates Ejderi",False),
+        ("6402","Mino Krali",False),("6403","Naga Savasci",False),
+        ("6404","Naga Lideri",False),
+    ]
+    mc = ic = nc = 0
+    for r, _, fs in os.walk(SERVER_PACK):
+        for f in fs:
+            fl = f.lower()
+            fp = os.path.join(r, f)
+            if fl == "mob_proto.txt":
+                ls = open(fp, encoding="utf-8", errors="ignore").read().splitlines()
+                raw = "\n".join(ls)
+                t_npc = next((l for l in ls if l.startswith(("9003\t","20001\t"))), None)
+                t_bos = next((l for l in ls if l.startswith(("691\t","101\t"))), t_npc)
+                add = []
+                for v, nm, is_n in mobs:
+                    if f"\n{v}\t" in raw or raw.startswith(f"{v}\t"): continue
+                    base = (t_npc if is_n else t_bos)
+                    if not base: continue
+                    cs = base.split("\t")
+                    cs[0] = v
+                    if len(cs) > 1: cs[1] = nm
+                    add.append("\t".join(cs))
+                if add:
+                    open(fp, "a", encoding="utf-8").write("\n" + "\n".join(add) + "\n")
+                    mc += len(add)
+            elif fl == "mob_names.txt":
+                s = open(fp, encoding="utf-8", errors="ignore").read()
+                add = [f"{v}\t{nm}" for v, nm, _ in mobs if f"\n{v}\t" not in s]
+                if add: open(fp, "a", encoding="utf-8").write("\n" + "\n".join(add) + "\n")
+            elif fl == "item_proto.txt":
+                ls = open(fp, encoding="utf-8", errors="ignore").read().splitlines()
+                raw = "\n".join(ls)
+                t_w = next((l for l in ls if l.startswith(("299\t","19\t"))), None)
+                add = []
+                if t_w:
+                    for i in range(24):
+                        v = str(95000 + i)
+                        if f"\n{v}\t" in raw: continue
+                        cs = t_w.split("\t")
+                        cs[0] = v
+                        if len(cs) > 1: cs[1] = f"Saltanat Silahi +{i+1}"
+                        add.append("\t".join(cs))
+                if add:
+                    open(fp, "a", encoding="utf-8").write("\n" + "\n".join(add) + "\n")
+                    ic += len(add)
+            elif fl == "item_names.txt":
+                s = open(fp, encoding="utf-8", errors="ignore").read()
+                add = [f"{95000+i}\tSaltanat Silahi +{i+1}" for i in range(24) if f"\n{95000+i}\t" not in s]
+                if add: open(fp, "a", encoding="utf-8").write("\n" + "\n".join(add) + "\n")
+        bn = os.path.basename(r)
+        coords = {"metin2_map_a1":(651,586),"metin2_map_b1":(637,644),"metin2_map_c1":(387,644)}
+        if bn in coords and "npc.txt" in fs:
+            fp = os.path.join(r, "npc.txt")
+            s = open(fp, encoding="utf-8", errors="ignore").read()
+            if "20400" not in s:
+                x, y = coords[bn]
+                open(fp, "a", encoding="utf-8").write(f"\nm\t{x}\t{y}\t0\t0\t0\t1\t1m\t100\t1\t20400\n")
+                nc += 1
+    print(f"[p9] Server proto: mob={mc}, item={ic}, drakman={nc}")
+
 def run():
     print("=== [P9] SALTANAT 300 OVERHAUL ===")
     ensure_saltanat_repo()
@@ -231,6 +300,7 @@ def run():
     fix_skybox_maps()
     patch_saltanat_ui()
     patch_saltanat_lists()
+    patch_saltanat_server()
 
 if __name__ == "__main__":
     if "--check" in sys.argv:
