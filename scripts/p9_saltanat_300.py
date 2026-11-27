@@ -298,7 +298,7 @@ def run():
         print(f"  [{'OK' if ok else '!!'}] {name}: {info}")
     sync_saltanat_assets()
     fix_skybox_maps()
-    patch_saltanat_ui()
+    # patch_saltanat_ui()
     patch_saltanat_lists()
     patch_saltanat_server()
 
