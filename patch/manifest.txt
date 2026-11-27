@@ -1,3 +1,3 @@
-1024
-https://github.com/zenfasulyesi55-afk/Metin2-Lab-Releases/releases/download/patch-v1024/m2patch.zip
+1025
+https://github.com/zenfasulyesi55-afk/Metin2-Lab-Releases/releases/download/patch-v1025/m2patch.zip
 
