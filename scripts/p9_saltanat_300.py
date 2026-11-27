@@ -143,9 +143,7 @@ def sync_saltanat_assets():
     print(f"[p9] Saltanat varliklari eklendi: {copied}")
     return copied
 
-def fix_skybox_maps()
-    patch_saltanat_ui()
-    patch_saltanat_lists():
+def fix_skybox_maps():
     if not os.path.isdir(STAGE_DIR):
         return
     fixed = 0
@@ -231,6 +229,8 @@ def run():
         print(f"  [{'OK' if ok else '!!'}] {name}: {info}")
     sync_saltanat_assets()
     fix_skybox_maps()
+    patch_saltanat_ui()
+    patch_saltanat_lists()
 
 if __name__ == "__main__":
     if "--check" in sys.argv:
