@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import json, os, re, shutil, sqlite3, subprocess, sys, urllib.request, zipfile
+import os, re, shutil, sqlite3, subprocess, sys, urllib.request, zipfile
 
 REL_REPO = "zenfasulyesi55-afk/Metin2-Lab"
 BUNDLE_URL = "https://github.com/%s/releases/download/saltanat-assets-v1/saltanat_kraliyet_bundle.zip" % REL_REPO
@@ -11,57 +11,66 @@ SHP_M = "# === SALTANAT_SHOP_V10 ==="
 LOG_M = "# === SALTANAT_LOGIN_V10 ==="
 
 def _find(names):
-    if isinstance(names, str): names = (names,)
+    if isinstance(names, str):
+        names = (names,)
     low = {n.lower() for n in names}
     hits = []
     for base in ("client-src", "server-src", "/tmp/m2stage", "/tmp/m2serverpack", "."):
-        if not os.path.isdir(base): continue
+        if not os.path.isdir(base):
+            continue
         for r, ds, fs in os.walk(base):
             ds[:] = [d for d in ds if d not in (".git", "build", ".gradle")]
             for f in fs:
                 if f.lower() in low:
                     p = os.path.abspath(os.path.join(r, f))
-                    if p not in hits: hits.append(p)
+                    if p not in hits:
+                        hits.append(p)
     return hits
 
-def _bal(s): return s.count("{") == s.count("}") and s.count("(") == s.count(")")
+def _bal(s):
+    return s.count("{") == s.count("}") and s.count("(") == s.count(")")
 
 def ensure_bundle():
-    if os.path.isfile(BUNDLE_LOCAL) and zipfile.is_zipfile(BUNDLE_LOCAL): return BUNDLE_LOCAL
+    if os.path.isfile(BUNDLE_LOCAL) and zipfile.is_zipfile(BUNDLE_LOCAL):
+        return BUNDLE_LOCAL
     print("[p10] Saltanat paketi indiriliyor...")
     try:
         urllib.request.urlretrieve(BUNDLE_URL, BUNDLE_LOCAL)
-        if zipfile.is_zipfile(BUNDLE_LOCAL): return BUNDLE_LOCAL
-    except Exception: pass
-    subprocess.run(["gh", "release", "download", "saltanat-assets-v1", "-R", REL_REPO,
-                    "-p", "saltanat_kraliyet_bundle.zip", "-D", "/tmp", "--clobber"], check=False)
+        if zipfile.is_zipfile(BUNDLE_LOCAL):
+            return BUNDLE_LOCAL
+    except Exception:
+        pass
+    subprocess.run(["gh", "release", "download", "saltanat-assets-v1", "-R", REL_REPO, "-p", "saltanat_kraliyet_bundle.zip", "-D", "/tmp", "--clobber"], check=False)
     return BUNDLE_LOCAL if os.path.isfile(BUNDLE_LOCAL) and zipfile.is_zipfile(BUNDLE_LOCAL) else None
 
 def patch_java():
     for jp in _find("JoystickView.java"):
         src = open(jp, encoding="utf-8", errors="ignore").read()
-        if "SALTANAT_DYN_JOY_V10" in src: continue
+        if "SALTANAT_DYN_JOY_V10" in src:
+            continue
         orig = src
         src = re.sub(r"Color\.argb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)", "0x66121722", src, count=1)
         src = re.sub(r"new\s+Paint\s*\(\s*\)", "new Paint(Paint.ANTI_ALIAS_FLAG)", src)
-        cx = next((n for n in ("centerX", "mCenterX", "baseX", "cx") if re.search(r"\b"+n+r"\b", src)), None)
-        cy = next((n for n in ("centerY", "mCenterY", "baseY", "cy") if re.search(r"\b"+n+r"\b", src)), None)
+        cx = next((n for n in ("centerX", "mCenterX", "baseX", "cx") if re.search(r"\b" + n + r"\b", src)), None)
+        cy = next((n for n in ("centerY", "mCenterY", "baseY", "cy") if re.search(r"\b" + n + r"\b", src)), None)
         if cx and cy and "ACTION_DOWN" in src:
             d = "/* SALTANAT_DYN_JOY_V10 */ setAlpha(1.0f); float _p=Math.min(getWidth(),getHeight())*0.28f; %s=Math.max(_p,Math.min(getWidth()-_p,event.getX())); %s=Math.max(_p,Math.min(getHeight()-_p,event.getY()));" % (cx, cy)
             src = re.sub(r"(case\s+MotionEvent\.ACTION_DOWN\s*:)", r"\1 " + d, src, count=1)
             src = re.sub(r"(case\s+MotionEvent\.ACTION_UP\s*:)", r"\1 setAlpha(0.32f);", src, count=1)
         if _bal(src) and src != orig:
-            open(jp, "w", encoding="utf-8").write(src); print("[p10] JoystickView dinamik:", jp)
+            open(jp, "w", encoding="utf-8").write(src)
+            print("[p10] JoystickView dinamik:", jp)
     for mp in _find("MainActivity.java"):
         src = open(mp, encoding="utf-8", errors="ignore").read()
-        if "SALTANAT_UI_V10B" in src: continue
+        if "SALTANAT_UI_V10B" in src:
+            continue
         orig = src
-        imm = (" /* SALTANAT_UI_V10B */ try { getWindow().getDecorView().setBackgroundColor(0xFF0A0D14);"
-               " getWindow().getDecorView().setSystemUiVisibility(4096|4|2|256|1024|512); } catch (Throwable _e) {} ")
+        imm = " /* SALTANAT_UI_V10B */ try { getWindow().getDecorView().setBackgroundColor(0xFF0A0D14); getWindow().getDecorView().setSystemUiVisibility(5894); } catch (Throwable _e) {} "
         src = re.sub(r"(super\.onCreate\s*\([^)]*\)\s*;)", r"\1" + imm, src, count=1)
         src = src.replace("0xFF1A1A2E", "0xFF0C1018").replace("0xFF16213E", "0xFF121926")
         if _bal(src) and src != orig:
-            open(mp, "w", encoding="utf-8").write(src); print("[p10] MainActivity UI:", mp)
+            open(mp, "w", encoding="utf-8").write(src)
+            print("[p10] MainActivity UI:", mp)
 
 HUD_PY2 = '''
 # === SALTANAT_HUD_V10_SAFE ===
@@ -151,26 +160,15 @@ try:
             if self.menuOpen: self.ToggleMenu()
             try: _sn.SendChatPacket("/go c")
             except Exception: pass
-        def _inv(self):
+        def _ui_call(self, fn, *a):
             if self.menuOpen: self.ToggleMenu()
             try:
-                if self.interface: self.interface.ToggleInventoryWindow()
+                if self.interface and hasattr(self.interface, fn): getattr(self.interface, fn)(*a)
             except Exception: pass
-        def _chr(self):
-            if self.menuOpen: self.ToggleMenu()
-            try:
-                if self.interface: self.interface.ToggleCharacterWindow("STATUS")
-            except Exception: pass
-        def _skl(self):
-            if self.menuOpen: self.ToggleMenu()
-            try:
-                if self.interface: self.interface.ToggleCharacterWindow("SKILL")
-            except Exception: pass
-        def _cht(self):
-            if self.menuOpen: self.ToggleMenu()
-            try:
-                if self.interface and hasattr(self.interface, "ToggleChat"): self.interface.ToggleChat()
-            except Exception: pass
+        def _inv(self): self._ui_call("ToggleInventoryWindow")
+        def _chr(self): self._ui_call("ToggleCharacterWindow", "STATUS")
+        def _skl(self): self._ui_call("ToggleCharacterWindow", "SKILL")
+        def _cht(self): self._ui_call("ToggleChat")
         def Show(self):
             if not self._ok:
                 try: self.Build()
@@ -214,10 +212,10 @@ try:
     class _IABar(_iu.Window):
         def __init__(self):
             _iu.Window.__init__(self); sw, sh = _iw.GetScreenWidth(), _iw.GetScreenHeight()
-            self.SetSize(316, 48); self.SetPosition((sw-316)//2, sh-62); self.slot = -1
+            self.SetSize(316,48); self.SetPosition((sw-316)//2, sh-62); self.slot = -1
             b = _iu.Bar(); b.SetParent(self); b.AddFlag("not_pick"); b.SetPosition(0,0); b.SetSize(316,48); b.SetColor(0xEE0E1420); b.Show()
             self._b = b
-            self._bs = [_ITBtn(self, 6,6,96,36,"KULLAN/GIY",0xCC1E5631,self._u), _ITBtn(self,108,6,92,36,"SLOTA KOY",0xCC1B3B6F,self._q),
+            self._bs = [_ITBtn(self,6,6,96,36,"KULLAN/GIY",0xCC1E5631,self._u), _ITBtn(self,108,6,92,36,"SLOTA KOY",0xCC1B3B6F,self._q),
                         _ITBtn(self,206,6,66,36,"SAT/AT",0xCC6E2626,self._d), _ITBtn(self,278,6,32,36,"X",0xCC333A48,self.Hide)]
             self.Hide()
         def OpenFor(self, s): self.slot = s; self.Show(); self.SetTop()
@@ -278,10 +276,9 @@ try:
     class _QBar(_qu.Window):
         def __init__(self):
             _qu.Window.__init__(self); sw, sh = _qw.GetScreenWidth(), _qw.GetScreenHeight()
-            self.SetSize(224, 48); self.SetPosition((sw-224)//2, sh-62); self.slot = -1
+            self.SetSize(224,48); self.SetPosition((sw-224)//2, sh-62); self.slot = -1
             b = _qu.Bar(); b.SetParent(self); b.AddFlag("not_pick"); b.SetPosition(0,0); b.SetSize(224,48); b.SetColor(0xEE0E1420); b.Show()
-            self._b = b
-            self._bs = [_QBtn(self,6,6,136,36,"SATIN AL",0xCC1E5631,self._buy), _QBtn(self,148,6,70,36,"IPTAL",0xCC4A2020,self.Hide)]
+            self._b = b; self._bs = [_QBtn(self,6,6,136,36,"SATIN AL",0xCC1E5631,self._buy), _QBtn(self,148,6,70,36,"IPTAL",0xCC4A2020,self.Hide)]
             self.Hide()
         def OpenFor(self, s): self.slot = s; self.Show(); self.SetTop()
         def _buy(self):
@@ -350,11 +347,12 @@ except Exception:
 '''
 
 def patch_py():
-    skip = ("opt","gfx","cfg","conf","dlg","dialog","set","btn","bar","slider","dev","panel")
+    skip = ("opt", "gfx", "cfg", "conf", "dlg", "dialog", "set", "btn", "bar", "slider", "dev", "panel")
     for hp in _find("uimobilehud.py"):
         o = open(hp, encoding="utf-8", errors="ignore").read().split(HUD_M)[0].rstrip()
         cls = [c for c in re.findall(r"^class\s+(\w+)", o, re.M) if ("hud" in c.lower() or "mobile" in c.lower()) and not any(w in c.lower() for w in skip)]
-        if "MobileHUD" not in cls: cls.append("MobileHUD")
+        if "MobileHUD" not in cls:
+            cls.append("MobileHUD")
         al = "\n".join("%s = SaltanatMobileHUD" % c for c in sorted(set(cls)) if c != "SaltanatMobileHUD")
         open(hp, "w", encoding="utf-8").write(o + "\n\n" + HUD_PY2.strip() + "\n" + al + "\n")
         print("[p10] uimobilehud OK:", hp)
@@ -368,26 +366,34 @@ def patch_server():
     for cp in _find("CONFIG"):
         t = open(cp, encoding="utf-8", errors="ignore").read()
         nt = re.sub(r"(?im)^MAX_LEVEL\s*:\s*\d+", "MAX_LEVEL: 300", t) if re.search(r"(?im)^MAX_LEVEL\s*:", t) else t.rstrip() + "\nMAX_LEVEL: 300\n"
-        if nt != t: open(cp, "w", encoding="utf-8").write(nt); print("[p10] CONFIG 300:", cp)
+        if nt != t:
+            open(cp, "w", encoding="utf-8").write(nt)
+            print("[p10] CONFIG 300:", cp)
     for dbp in _find(("player.sqlite", "player.sqlite3")):
         try:
-            con = sqlite3.connect(dbp); cur = con.cursor()
+            con = sqlite3.connect(dbp)
+            cur = con.cursor()
             ts = {r[0] for r in cur.execute("SELECT name FROM sqlite_master WHERE type='table'")}
             if "shop" in ts and "shop_item" in ts:
                 cur.execute("INSERT OR IGNORE INTO shop (vnum, name, npc_vnum) VALUES (900, 'Saltanat Market', 20400)")
-                for r in ((900,19,1),(900,149,1),(900,299,1),(900,11299,1),(900,71124,1),(900,53001,1),(900,27992,5),(900,27993,5),(900,27994,5)):
+                for r in ((900, 19, 1), (900, 149, 1), (900, 299, 1), (900, 11299, 1), (900, 71124, 1), (900, 53001, 1), (900, 27992, 5), (900, 27993, 5), (900, 27994, 5)):
                     cur.execute("INSERT OR IGNORE INTO shop_item (shop_vnum, item_vnum, count) VALUES (?,?,?)", r)
             if "refine_proto" in ts:
                 cur.execute("UPDATE refine_proto SET prob = 100 WHERE prob < 100")
-                        con.commit(); con.close(); print("[p10] SQLite OK:", dbp)
-        except Exception as e: print("[p10] SQLite uyari:", e)
-
+            con.commit()
+            con.close()
+            print("[p10] SQLite OK:", dbp)
+        except Exception as e:
+            print("[p10] SQLite uyari:", e)
 def apply_bundle():
     bp = ensure_bundle()
-    if not bp: return
-    zf = zipfile.ZipFile(bp); ns = set(zf.namelist())
+    if not bp:
+        return
+    zf = zipfile.ZipFile(bp)
+    ns = set(zf.namelist())
     for base in ("/tmp/m2serverpack/server", "/tmp/m2serverpack"):
-        if not os.path.isdir(base): continue
+        if not os.path.isdir(base):
+            continue
         for r, _, fs in os.walk(base):
             for f in fs:
                 k = "server/data/" + f.lower()
@@ -399,21 +405,29 @@ def apply_bundle():
             shutil.rmtree(os.path.join(st, mp), ignore_errors=True)
         n = 0
         for info in zf.infolist():
-            if info.is_dir(): continue
+            if info.is_dir():
+                continue
             fn = info.filename
             rel = fn[12:] if fn.startswith("client/maps/") else (fn[7:] if fn.startswith(("client/icon/", "client/a_maviruhkraliyet")) else None)
-            if not rel: continue
-            tp = os.path.join(st, rel); os.makedirs(os.path.dirname(tp), exist_ok=True)
-            open(tp, "wb").write(zf.read(info)); n += 1
+            if not rel:
+                continue
+            tp = os.path.join(st, rel)
+            os.makedirs(os.path.dirname(tp), exist_ok=True)
+            open(tp, "wb").write(zf.read(info))
+            n += 1
         for mp in ("metin2_map_a1", "metin2_map_b1", "metin2_map_c1"):
             sp = os.path.join(st, mp, "setting.txt")
             if os.path.isfile(sp):
-                open(sp, "w", encoding="utf-8").write(re.sub(r"(?im)^Environment\s+.*$", "Environment\ta1.msenv", open(sp, encoding="utf-8", errors="ignore").read()))
+                txt = open(sp, encoding="utf-8", errors="ignore").read()
+                open(sp, "w", encoding="utf-8").write(re.sub(r"(?im)^Environment\s+.*$", "Environment\ta1.msenv", txt))
         print("[p10] Harita/varlik OK:", n)
 
 def run(stage_only=False):
-    if not stage_only: patch_java()
-    patch_py(); patch_server(); apply_bundle()
+    if not stage_only:
+        patch_java()
+    patch_py()
+    patch_server()
+    apply_bundle()
 
 if __name__ == "__main__":
     run("--stage-only" in sys.argv)
