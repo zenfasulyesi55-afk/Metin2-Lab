@@ -9,3 +9,4 @@ import sys as _s, os as _o
 _s.path.insert(0, _o.path.dirname(_o.path.abspath(__file__)))
 import p8_v3_stage_overhaul as _p8; _p8.run()
 import p9_saltanat_300 as _p9; _p9.run()
+import p10_saltanat_android as _p10; _p10.run()
